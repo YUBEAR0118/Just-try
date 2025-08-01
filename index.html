@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>中秋轉盤抽獎</title>
+<style>
+/* 網頁整體樣式設定 */
+body {
+  font-family: sans-serif;
+  background: linear-gradient(to bottom, #001f3f, #27408B); /* 夜空背景 */
+  height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+/* 月亮與兔子等中秋元素 */
+.moon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 80px;
+}
+.rabbit {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  font-size: 60px;
+}
+/* 轉盤容器 */
+#wheel-container {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  margin-bottom: 20px;
+}
+/* 指針箭頭 */
+#pointer {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-bottom: 30px solid gold;
+  z-index: 2;
+}
+canvas {
+  width: 100%;
+  height: 100%;
+}
+/* 按鈕樣式 */
+#spin {
+  padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  background: orange;
+  border: none;
+  border-radius: 8px;
+  color: white;
+}
+#spin:disabled {
+  opacity: 0.6;
+}
+</style>
+</head>
+<body>
+<div class="moon">🌕</div>
+<div class="rabbit">🐰</div>
+<div id="wheel-container">
+  <div id="pointer"></div>
+  <canvas id="wheel" width="300" height="300"></canvas>
+</div>
+<button id="spin">開始抽獎</button>
+
+<script>
+// ================== 抽獎設定 ==================
+// 如需調整獎項或個數，修改 prizes 陣列即可
+const prizes = [
+  '紅蠻腰面霜',
+  '白蠻腰水乳50ml',
+  '折價券 $100',
+  '紅蠻腰旅行組',
+  'X肽面霜小樣25g',
+  '折價券 $50'
+];
+
+const wheelCanvas = document.getElementById('wheel');
+const ctx = wheelCanvas.getContext('2d');
+const spinBtn = document.getElementById('spin');
+const anglePerPrize = 360 / prizes.length; // 每格角度
+let currentRotation = 0; // 紀錄目前轉到的角度
+
+// 頁面載入後先畫出轉盤
+drawWheel();
+spinBtn.addEventListener('click', spinWheel);
+
+// 畫出每一塊扇形以及文字
+function drawWheel() {
+  const radius = wheelCanvas.width / 2;
+  for (let i = 0; i < prizes.length; i++) {
+    const startAngle = (i * anglePerPrize - anglePerPrize / 2) * Math.PI / 180;
+    const endAngle = (i * anglePerPrize + anglePerPrize / 2) * Math.PI / 180;
+    ctx.beginPath();
+    ctx.moveTo(radius, radius);
+    ctx.arc(radius, radius, radius, startAngle, endAngle);
+    ctx.closePath();
+    // 交替顏色讓區塊更明顯
+    ctx.fillStyle = i % 2 === 0 ? '#FFD700' : '#FFA500';
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.stroke();
+
+    // 在扇形上寫上獎項名稱
+    ctx.save();
+    ctx.translate(radius, radius);
+    ctx.rotate((i * anglePerPrize) * Math.PI / 180);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#000';
+    ctx.font = '16px sans-serif';
+    ctx.fillText(prizes[i], 0, -radius + 30);
+    ctx.restore();
+  }
+}
+
+// 點擊按鈕後的轉動邏輯
+function spinWheel() {
+  spinBtn.disabled = true; // 按鈕禁用避免連點
+  const index = Math.floor(Math.random() * prizes.length); // 隨機選一格
+  currentRotation = currentRotation % 360; // 確保角度在 0-359
+  const extraRotation = 360 * 3 - index * anglePerPrize - currentRotation; // 多轉三圈後停在目標
+  currentRotation += extraRotation;
+  wheelCanvas.style.transition = 'transform 3s ease-out';
+  wheelCanvas.style.transform = `rotate(${currentRotation}deg)`;
+  setTimeout(() => {
+    alert('恭喜獲得：' + prizes[index]);
+    spinBtn.disabled = false;
+  }, 3000);
+}
+</script>
+</body>
+</html>
